@@ -24,7 +24,9 @@ jobs:
           )
           foreach ($file in $files) {
             if (Test-Path $file) {
+              # Patch directory_path_to_url calls
               (Get-Content $file) -replace 'directory_path_to_url\(([^)]+)\)', 'directory_path_to_url($1.as_str())' | Set-Content $file
+              # Patch file_path_to_url calls
               (Get-Content $file) -replace 'file_url::file_path_to_url\(([^)]+)\)', 'file_url::file_path_to_url($1.as_str())' | Set-Content $file
             }
           }
