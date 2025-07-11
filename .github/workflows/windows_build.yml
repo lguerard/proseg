@@ -19,7 +19,7 @@ jobs:
         override: true
 
     - name: Install rattler-build
-      run: cargo install rattler-build --version 0.25.0
+      run: cargo install rattler-build
 
     - name: Build project
       run: cargo build --release
