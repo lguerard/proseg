@@ -1,0 +1,25 @@
+context:
+  version: "0.1.0"
+
+package:
+  name: your-rust-package
+  version: ${{ version }}
+
+source:
+  path: .
+
+build:
+  number: 0
+  script:
+    - cargo build --release
+
+requirements:
+  host:
+    - rust
+    - cargo
+  run:
+    - rust
+
+about:
+  summary: Your Rust project packaged for Conda with rattler-build.
+  license: MIT

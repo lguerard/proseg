@@ -1,0 +1,40 @@
+name: Rust Build and Conda Release with Rattler-Build (Windows)
+
+on:
+  push:   # Trigger on any push
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+
+    - name: Install rattler-build
+      run: cargo install rattler-build
+
+    - name: Build Conda package with rattler-build
+      run: rattler-build build --recipe recipe.yaml --output-folder build_output
+
+    - name: Upload Conda package as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: conda-package
+        path: build_output/**/*
+    
+    - name: Publish to Anaconda.org
+      env:
+        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+      run: |
+        for pkg in build_output/**/*.conda; do
+          anaconda -t $env:ANACONDA_API_TOKEN upload "$pkg" --force
+        done
+      shell: pwsh
