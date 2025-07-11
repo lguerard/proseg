@@ -19,22 +19,24 @@ jobs:
         override: true
 
     - name: Install rattler-build
-      run: cargo install rattler-build
+      run: cargo install rattler-build --version 0.25.0
 
-    - name: Build Conda package with rattler-build
-      run: rattler-build build --recipe recipe.yaml --output-folder build_output
+    - name: Build project
+      run: cargo build --release
 
-    - name: Upload Conda package as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: conda-package
-        path: build_output/**/*
+    - name: Run rattler-build
+      run: rattler-build
+    # - name: Upload Conda package as artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: conda-package
+    #     path: build_output/**/*
     
-    - name: Publish to Anaconda.org
-      env:
-        ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
-      run: |
-        for pkg in build_output/**/*.conda; do
-          anaconda -t $env:ANACONDA_API_TOKEN upload "$pkg" --force
-        done
-      shell: pwsh
+    # - name: Publish to Anaconda.org
+    #   env:
+    #     ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+    #   run: |
+    #     for pkg in build_output/**/*.conda; do
+    #       anaconda -t $env:ANACONDA_API_TOKEN upload "$pkg" --force
+    #     done
+    #   shell: pwsh
