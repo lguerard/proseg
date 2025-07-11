@@ -35,8 +35,6 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-    - name: Install rattler-build
-      run: cargo install rattler-build
 
       - name: Install rattler-build
         run: cargo install rattler-build
