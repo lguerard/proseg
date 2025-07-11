@@ -1,42 +1,48 @@
 name: Rust Build and Conda Release with Rattler-Build (Windows)
 
 on:
-  push:   # Trigger on any push
+  push:
+    branches:
+      - main
+      - lguerard-patch-1
+  pull_request:
 
 jobs:
-  build-and-release:
+  build:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
+      - name: Patch Utf8TypedPath usages before build
+        shell: pwsh
+        run: |
+          $files = @(
+            'rattler_conda_types/src/channel/mod.rs',
+            'rattler_conda_types/src/match_spec/parse.rs'
+          )
+          foreach ($file in $files) {
+            if (Test-Path $file) {
+              (Get-Content $file) -replace 'directory_path_to_url\(([^)]+)\)', 'directory_path_to_url($1.as_str())' | Set-Content $file
+              (Get-Content $file) -replace 'file_url::file_path_to_url\(([^)]+)\)', 'file_url::file_path_to_url($1.as_str())' | Set-Content $file
+            }
+          }
 
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
     - name: Install rattler-build
       run: cargo install rattler-build
 
-    - name: Build project
-      run: cargo build --release
+      - name: Install rattler-build
+        run: cargo install rattler-build
 
-    - name: Run rattler-build
-      run: rattler-build
-    # - name: Upload Conda package as artifact
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: conda-package
-    #     path: build_output/**/*
-    
-    # - name: Publish to Anaconda.org
-    #   env:
-    #     ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
-    #   run: |
-    #     for pkg in build_output/**/*.conda; do
-    #       anaconda -t $env:ANACONDA_API_TOKEN upload "$pkg" --force
-    #     done
-    #   shell: pwsh
+      - name: Build project
+        run: cargo build --release
+
+      - name: Run rattler-build
+        run: rattler-build
