@@ -15,22 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Patch Utf8TypedPath usages before build
-        shell: pwsh
-        run: |
-          $files = @(
-            'rattler_conda_types/src/channel/mod.rs',
-            'rattler_conda_types/src/match_spec/parse.rs'
-          )
-          foreach ($file in $files) {
-            if (Test-Path $file) {
-              # Patch directory_path_to_url calls
-              (Get-Content $file) -replace 'directory_path_to_url\(([^)]+)\)', 'directory_path_to_url($1.as_str())' | Set-Content $file
-              # Patch file_path_to_url calls
-              (Get-Content $file) -replace 'file_url::file_path_to_url\(([^)]+)\)', 'file_url::file_path_to_url($1.as_str())' | Set-Content $file
-            }
-          }
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -38,11 +22,5 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install rattler-build
-        run: cargo install rattler-build
-
       - name: Build project
         run: cargo build --release
-
-      - name: Run rattler-build
-        run: rattler-build
